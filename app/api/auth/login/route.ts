@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const token = signSession({ userId: user.id, role: user.role, name: user.name });
+  const token = await signSession({ userId: user.id, role: user.role, name: user.name });
 
   const response = NextResponse.json({
     user: { id: user.id, name: user.name, role: user.role },
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 8, // 8h
+    maxAge: 60 * 60 * 8,
     path: "/",
   });
 

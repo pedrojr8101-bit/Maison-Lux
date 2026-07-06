@@ -1,9 +1,12 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-const TOKEN_COOKIE_NAME = "ml_session";
 const TOKEN_TTL = "8h";
+export const SESSION_COOKIE = "ml_session";
+
+function getSecretKey() {
+  return new TextEncoder().encode(process.env.JWT_SECRET as string);
+}
 
 export interface SessionPayload {
   userId: string;
@@ -19,21 +22,23 @@ export async function verifyPassword(plain: string, hash: string) {
   return bcrypt.compare(plain, hash);
 }
 
-export function signSession(payload: SessionPayload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: TOKEN_TTL });
+export async function signSession(payload: SessionPayload) {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(TOKEN_TTL)
+    .sign(getSecretKey());
 }
 
-export function verifySession(token: string): SessionPayload | null {
+export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
-    return jwt.verify(token, JWT_SECRET) as SessionPayload;
+    const { payload } = await jwtVerify(token, getSecretKey());
+    return payload as unknown as SessionPayload;
   } catch {
     return null;
   }
 }
 
-export const SESSION_COOKIE = TOKEN_COOKIE_NAME;
-
-// Garante que apenas ADMIN/STAFF acessem rotas de gestão
 export function assertIsStaff(session: SessionPayload | null) {
   if (!session || (session.role !== "ADMIN" && session.role !== "STAFF")) {
     throw new Error("UNAUTHORIZED");

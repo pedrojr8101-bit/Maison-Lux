@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession, SESSION_COOKIE } from "@/lib/auth";
 
-// Middleware roda no Edge Runtime — apenas checa presença/validade do token.
-// A checagem fina de role (ADMIN/STAFF) é feita novamente em cada API route.
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAdminArea = pathname.startsWith("/admin") && pathname !== "/admin/login";
@@ -12,7 +10,7 @@ export function middleware(request: NextRequest) {
   if (!isAdminArea && !isAdminApi) return NextResponse.next();
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const session = token ? verifySession(token) : null;
+  const session = token ? await verifySession(token) : null;
 
   if (!session || (session.role !== "ADMIN" && session.role !== "STAFF")) {
     if (isAdminApi) {
