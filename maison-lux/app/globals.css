@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-offwhite text-charcoal font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-serif text-brown;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-gold text-offwhite px-6 py-3
+           text-sm tracking-luxe uppercase transition-colors duration-200
+           hover:bg-gold-dark disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center border border-charcoal text-charcoal px-6 py-3
+           text-sm tracking-luxe uppercase transition-colors duration-200
+           hover:bg-charcoal hover:text-offwhite;
+  }
+  .section-title {
+    @apply font-serif text-3xl md:text-4xl text-brown tracking-wide;
+  }
+  .input-field {
+    @apply w-full border border-beige bg-white px-4 py-3 text-sm
+           focus:outline-none focus:ring-1 focus:ring-gold placeholder:text-charcoal/40;
+  }
+  .admin-card {
+    @apply bg-white border border-beige rounded-md shadow-card p-6;
+  }
+}

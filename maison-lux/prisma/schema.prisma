@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =========================================================
+// USUÁRIOS (Admin/Lojista + Clientes)
+// =========================================================
+enum UserRole {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(CUSTOMER)
+  phone        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  addresses Address[]
+  orders    Order[]
+
+  @@map("users")
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  label      String? // "Casa", "Trabalho"
+  street     String
+  number     String
+  complement String?
+  district   String
+  city       String
+  state      String
+  zipCode    String
+  isDefault  Boolean @default(false)
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("addresses")
+}
+
+// =========================================================
+// LINHAS DE PRODUTO (Categorias/Coleções)
+// =========================================================
+model ProductLine {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  coverImage  String?
+  isFeatured  Boolean  @default(false) // aparece no carrossel da home
+  isActive    Boolean  @default(true)
+  order       Int      @default(0) // ordenação manual no carrossel
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("product_lines")
+}
+
+// =========================================================
+// PRODUTOS (Modelos de Roupas)
+// =========================================================
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  description     String        @db.Text
+  fabric          String? // composição do tecido
+  fit             String? // caimento (ex: "Slim", "Reto", "Oversized")
+  careInstructions String?
+  originalPrice   Decimal       @db.Decimal(10, 2)
+  salePrice       Decimal?      @db.Decimal(10, 2) // preço promocional (nullable)
+  status          ProductStatus @default(DRAFT)
+  isNewArrival    Boolean       @default(false)
+  lineId          String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  line     ProductLine       @relation(fields: [lineId], references: [id])
+  images   ProductImage[]
+  variants ProductVariant[] // grade de tamanho x cor x estoque
+  orderItems OrderItem[]
+
+  @@index([lineId])
+  @@index([status])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  url       String
+  altText   String?
+  order     Int     @default(0)
+  isCover   Boolean @default(false)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+enum Size {
+  PP
+  P
+  M
+  G
+  GG
+}
+
+// Grade de estoque: cada combinação Tamanho + Cor tem seu próprio saldo
+model ProductVariant {
+  id        String @id @default(cuid())
+  productId String
+  size      Size
+  color     String
+  colorHex  String? // para exibir swatch de cor no front
+  sku       String  @unique
+  stock     Int     @default(0)
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@unique([productId, size, color])
+  @@index([productId])
+  @@map("product_variants")
+}
+
+// =========================================================
+// PEDIDOS
+// =========================================================
+enum OrderStatus {
+  AGUARDANDO_PAGAMENTO
+  PAGO
+  ENVIADO
+  CANCELADO
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  code          String        @unique // número amigável, ex: ML-2026-000123
+  userId        String
+  addressId     String?
+  status        OrderStatus   @default(AGUARDANDO_PAGAMENTO)
+  paymentMethod PaymentMethod
+  subtotal      Decimal       @db.Decimal(10, 2)
+  shippingCost  Decimal       @db.Decimal(10, 2) @default(0)
+  total         Decimal       @db.Decimal(10, 2)
+  pixQrCode     String?       @db.Text // payload simulado do QR Code
+  cardLast4     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user    User        @relation(fields: [userId], references: [id])
+  address Address?    @relation(fields: [addressId], references: [id])
+  items   OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  productId  String
+  variantId  String
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(10, 2) // preço no momento da compra
+
+  order   Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product        @relation(fields: [productId], references: [id])
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@map("order_items")
+}
