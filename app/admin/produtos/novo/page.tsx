@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 import { ProductForm } from "@/components/admin/ProductForm";
 
 export default async function NewProductPage() {
