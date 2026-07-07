@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 interface ProductCardProps {
@@ -27,12 +26,11 @@ export function ProductCard({
     <Link href={`/produto/${slug}`} className="group block">
       <div className="relative aspect-[3/4] w-full overflow-hidden bg-sand">
         {coverImage ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={coverImage}
             alt={name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, 25vw"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-brown/30 font-serif text-sm">
