@@ -27,7 +27,7 @@ interface CheckoutFormData {
 const formatPrice = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
-const SHIPPING_COST = 35;
+const SHIPPING_COST = 10;
 
 export default function CheckoutPage() {
   const router = useRouter();
