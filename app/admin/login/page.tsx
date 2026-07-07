@@ -32,7 +32,7 @@ function LoginForm() {
       }
 
       // Redireciona para onde tentou ir ou para o dashboard administrativo
-      const callbackUrl = searchParams.get('callbackUrl') || '/admin/dashboard'
+      const callbackUrl = searchParams.get('redirect') || '/admin'
       router.push(callbackUrl)
       router.refresh()
     } catch (err: any) {
