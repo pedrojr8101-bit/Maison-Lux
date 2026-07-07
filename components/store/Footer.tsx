@@ -26,3 +26,32 @@ export function Footer() {
             <li>
               <Link href="/guia-de-medidas" className="hover:text-gold">
                 Guia de Medidas
+              </Link>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-xs uppercase tracking-luxe mb-4">Atendimento</h4>
+          <ul className="space-y-2 text-sm">
+            <li>
+              
+                href="https://instagram.com/closet_maisonlux"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gold"
+              >
+                @closet_maisonlux
+              </a>
+            </li>
+            <li>Pedro: (91) 98494-9665</li>
+            <li>Nathalia: (91) 98055-8963</li>
+            <li>Seg a Sex, 9h às 18h</li>
+          </ul>
+        </div>
+      </div>
+      <div className="text-center text-xs py-6 border-t border-offwhite/10">
+        © {new Date().getFullYear()} Maison Lux. Todos os direitos reservados.
+      </div>
+    </footer>
+  );
+}
