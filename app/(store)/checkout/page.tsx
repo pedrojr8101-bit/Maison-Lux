@@ -157,3 +157,36 @@ export default function CheckoutPage() {
             </p>
           </section>
         </div>
+
+        <aside className="admin-card h-fit space-y-4">
+          <h2 className="font-serif text-lg text-brown">Resumo do Pedido</h2>
+          {items.map((item) => (
+            <div key={item.variantId} className="flex justify-between text-sm">
+              <span className="text-charcoal/70">
+                {item.quantity}x {item.productName} ({item.size}/{item.color})
+              </span>
+              <span>{formatPrice(item.unitPrice * item.quantity)}</span>
+            </div>
+          ))}
+          <div className="border-t border-beige pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Subtotal</span>
+              <span>{formatPrice(subtotal())}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Frete</span>
+              <span>{formatPrice(SHIPPING_COST)}</span>
+            </div>
+            <div className="flex justify-between font-medium border-t border-beige pt-2">
+              <span>Total</span>
+              <span>{formatPrice(total)}</span>
+            </div>
+          </div>
+          <Button type="submit" className="w-full" isLoading={submitting}>
+            Confirmar Pedido
+          </Button>
+        </aside>
+      </form>
+    </main>
+  );
+}
