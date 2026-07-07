@@ -23,16 +23,60 @@ export async function GET(_request: NextRequest, { params }: Params) {
   return NextResponse.json(product);
 }
 
-// PUT /api/admin/products/:id — edita dados + substitui grade de variações e imagens
+// PUT /api/admin/products/:id — edita dados e sincroniza a grade de variações
+// Em vez de apagar e recriar tudo, atualiza (upsert) as variações existentes e só
+// remove as que não têm nenhum pedido vinculado (preserva histórico de vendas).
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
     const body = await request.json();
     const data = productSchema.parse(body);
 
+    const skus = data.variants.map((v) => v.sku);
+    if (new Set(skus).size !== skus.length) {
+      return NextResponse.json(
+        { error: "Existem SKUs duplicados na grade de variações." },
+        { status: 400 }
+      );
+    }
+
     const product = await prisma.$transaction(async (tx) => {
-      // remove variantes e imagens antigas para recriar a grade atualizada
-      await tx.productVariant.deleteMany({ where: { productId: params.id } });
       await tx.productImage.deleteMany({ where: { productId: params.id } });
+
+      const existingVariants = await tx.productVariant.findMany({
+        where: { productId: params.id },
+      });
+      const incomingKeys = new Set(data.variants.map((v) => `${v.size}|${v.color}`));
+
+      for (const v of data.variants) {
+        await tx.productVariant.upsert({
+          where: {
+            productId_size_color: {
+              productId: params.id,
+              size: v.size,
+              color: v.color,
+            },
+          },
+          update: { sku: v.sku, colorHex: v.colorHex, stock: v.stock },
+          create: {
+            productId: params.id,
+            size: v.size,
+            color: v.color,
+            colorHex: v.colorHex,
+            sku: v.sku,
+            stock: v.stock,
+          },
+        });
+      }
+
+      const toRemove = existingVariants.filter(
+        (ev) => !incomingKeys.has(`${ev.size}|${ev.color}`)
+      );
+      for (const variant of toRemove) {
+        const refCount = await tx.orderItem.count({ where: { variantId: variant.id } });
+        if (refCount === 0) {
+          await tx.productVariant.delete({ where: { id: variant.id } });
+        }
+      }
 
       return tx.product.update({
         where: { id: params.id },
@@ -55,15 +99,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
               order: idx,
             })),
           },
-          variants: {
-            create: data.variants.map((v) => ({
-              size: v.size,
-              color: v.color,
-              colorHex: v.colorHex,
-              sku: v.sku,
-              stock: v.stock,
-            })),
-          },
         },
         include: { images: true, variants: true },
       });
@@ -83,8 +118,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/admin/products/:id?mode=archive|hard
-// Por padrão arquiva (soft delete) para preservar histórico em pedidos já feitos.
-// mode=hard só é permitido se o produto nunca teve pedidos.
 export async function DELETE(request: NextRequest, { params }: Params) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get("mode") ?? "archive";
