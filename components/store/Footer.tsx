@@ -7,7 +7,7 @@ export function Footer() {
         <div>
           <h3 className="font-serif text-xl text-offwhite mb-4">MAISON LUX</h3>
           <p className="text-sm leading-relaxed">
-            Moda feminina com materiais nobres e caimento impecável.
+            Modena feminina com materiais nobres e caimento impecável.
           </p>
         </div>
         <div>
@@ -34,7 +34,8 @@ export function Footer() {
           <h4 className="text-xs uppercase tracking-luxe mb-4">Atendimento</h4>
           <ul className="space-y-2 text-sm">
             <li>
-              
+              {/* CORRIGIDO: Adicionada a tag de abertura <a */}
+              <a
                 href="https://instagram.com/closet_maisonlux"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -45,7 +46,7 @@ export function Footer() {
             </li>
             <li>Pedro: (91) 98494-9665</li>
             <li>Nathalia: (91) 98055-8963</li>
-            <li>Seg a Sex, 9h às 18h</li>
+            <li>Seg a Mex, 9h às 18h</li>
           </ul>
         </div>
       </div>
