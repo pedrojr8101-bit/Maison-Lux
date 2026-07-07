@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function Footer() {
   return (
     <footer className="bg-brown text-offwhite/80 mt-24">
@@ -11,15 +13,26 @@ export function Footer() {
         <div>
           <h4 className="text-xs uppercase tracking-luxe mb-4">Institucional</h4>
           <ul className="space-y-2 text-sm">
-            <li>Sobre a Maison</li>
-            <li>Trocas e Devoluções</li>
-            <li>Guia de Medidas</li>
+            <li><Link href="/sobre" className="hover:text-gold">Sobre a Maison</Link></li>
+            <li><Link href="/trocas-e-devolucoes" className="hover:text-gold">Trocas e Devoluções</Link></li>
+            <li><Link href="/guia-de-medidas" className="hover:text-gold">Guia de Medidas</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="text-xs uppercase tracking-luxe mb-4">Atendimento</h4>
           <ul className="space-y-2 text-sm">
-            <li>contato@maisonlux.com</li>
+            <li>
+              
+                href="https://instagram.com/closet_maisonlux"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-gold"
+              >
+                @closet_maisonlux
+              </a>
+            </li>
+            <li>Pedro: (91) 98494-9665</li>
+            <li>Nathalia: (91) 98055-8963</li>
             <li>Seg a Sex, 9h às 18h</li>
           </ul>
         </div>
