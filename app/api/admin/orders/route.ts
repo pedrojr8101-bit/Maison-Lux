@@ -5,6 +5,18 @@ import { generatePixPayload } from "@/lib/pix";
 import { z } from "zod";
 import crypto from "crypto";
 
+// GET /api/admin/orders — lista todos os pedidos para o painel admin
+export async function GET() {
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true } },
+      items: { include: { product: { select: { name: true } } } },
+    },
+  });
+  return NextResponse.json(orders);
+}
+
 const checkoutSchema = z.object({
   customer: z.object({
     name: z.string().min(2),
