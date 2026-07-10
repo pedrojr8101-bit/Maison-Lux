@@ -34,7 +34,7 @@ export function Footer() {
           <h4 className="text-xs uppercase tracking-luxe mb-4">Atendimento</h4>
           <ul className="space-y-2 text-sm">
             <li>
-              
+              <a
                 href="https://instagram.com/closet_maisonlux"
                 target="_blank"
                 rel="noopener noreferrer"
