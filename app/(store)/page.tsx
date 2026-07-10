@@ -34,7 +34,7 @@ export default async function HomePage() {
           alt="Maison Lux — Coleção Atual"
           fill
           priority
-          className="object-cover opacity-80"
+          className="object-cover object-top opacity-80"
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
           <p className="text-offwhite/80 tracking-luxe text-xs uppercase mb-4">
