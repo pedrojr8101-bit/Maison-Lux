@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface Line {
@@ -9,13 +9,21 @@ interface Line {
   name: string;
   slug: string;
   description: string | null;
+  coverImage: string | null;
   isFeatured: boolean;
   isActive: boolean;
   order: number;
   _count: { products: number };
 }
 
-const emptyForm = { name: "", description: "", isFeatured: false, isActive: true, order: 0 };
+const emptyForm = {
+  name: "",
+  description: "",
+  coverImage: "",
+  isFeatured: false,
+  isActive: true,
+  order: 0,
+};
 
 export default function AdminLinesPage() {
   const [lines, setLines] = useState<Line[]>([]);
@@ -24,6 +32,7 @@ export default function AdminLinesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const loadLines = useCallback(async () => {
     setLoading(true);
@@ -47,6 +56,7 @@ export default function AdminLinesPage() {
     setForm({
       name: line.name,
       description: line.description ?? "",
+      coverImage: line.coverImage ?? "",
       isFeatured: line.isFeatured,
       isActive: line.isActive,
       order: line.order,
@@ -54,6 +64,27 @@ export default function AdminLinesPage() {
     setEditingId(line.id);
     setShowForm(true);
     setError(null);
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/media/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok) {
+        setForm((f) => ({ ...f, coverImage: data.url }));
+      } else {
+        setError(data.error ?? "Erro ao enviar imagem.");
+      }
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -132,6 +163,37 @@ export default function AdminLinesPage() {
             />
           </div>
 
+          <div>
+            <label className="text-sm text-charcoal/70">Imagem de capa (carrossel da home)</label>
+            {form.coverImage ? (
+              <div className="relative mt-1 w-40 aspect-[4/5] border border-beige">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.coverImage} alt="" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, coverImage: "" })}
+                  className="absolute top-1 right-1 text-xs bg-white/90 px-2 py-1"
+                >
+                  Remover
+                </button>
+              </div>
+            ) : (
+              <label className="mt-1 flex flex-col items-center justify-center border-2 border-dashed border-beige rounded-md py-8 cursor-pointer hover:border-gold transition-colors">
+                <UploadCloud className="text-gold mb-2" size={24} />
+                <span className="text-sm text-charcoal/70">
+                  {uploading ? "Enviando..." : "Clique para enviar a imagem (JPG/PNG)"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleCoverUpload}
+                  disabled={uploading}
+                />
+              </label>
+            )}
+          </div>
+
           <div className="flex items-center gap-6">
             <label className="flex items-center gap-2 text-sm">
               <input
@@ -161,7 +223,9 @@ export default function AdminLinesPage() {
             />
           </div>
 
-          <Button type="submit">{editingId ? "Salvar Alterações" : "Criar Linha"}</Button>
+          <Button type="submit" disabled={uploading}>
+            {editingId ? "Salvar Alterações" : "Criar Linha"}
+          </Button>
         </form>
       )}
 
@@ -169,6 +233,7 @@ export default function AdminLinesPage() {
         <table className="w-full text-sm">
           <thead className="bg-sand text-left text-charcoal/70 uppercase text-xs tracking-luxe">
             <tr>
+              <th className="p-4">Capa</th>
               <th className="p-4">Nome</th>
               <th className="p-4">Produtos</th>
               <th className="p-4">Destaque</th>
@@ -179,20 +244,28 @@ export default function AdminLinesPage() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-charcoal/50">
+                <td colSpan={6} className="p-6 text-center text-charcoal/50">
                   Carregando...
                 </td>
               </tr>
             )}
             {!loading && lines.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-6 text-center text-charcoal/50">
+                <td colSpan={6} className="p-6 text-center text-charcoal/50">
                   Nenhuma linha cadastrada.
                 </td>
               </tr>
             )}
             {lines.map((line) => (
               <tr key={line.id} className="border-t border-beige">
+                <td className="p-4">
+                  {line.coverImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={line.coverImage} alt="" className="w-10 h-12 object-cover" />
+                  ) : (
+                    <div className="w-10 h-12 bg-beige" />
+                  )}
+                </td>
                 <td className="p-4">{line.name}</td>
                 <td className="p-4">{line._count.products}</td>
                 <td className="p-4">{line.isFeatured ? "Sim" : "Não"}</td>
