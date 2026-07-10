@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
+import { generatePixPayload } from "@/lib/pix";
 import { z } from "zod";
 import crypto from "crypto";
 
@@ -45,15 +46,6 @@ function generateOrderCode() {
   const year = new Date().getFullYear();
   const random = Math.floor(100000 + Math.random() * 900000);
   return `ML-${year}-${random}`;
-}
-
-// Gera um payload simulado no padrão visual do BR Code Pix (não é um Pix real/válido bancariamente)
-function generatePixPayload(orderCode: string, total: number) {
-  const merchant = "MAISONLUXMODA";
-  const city = "SAO PAULO";
-  return `00020126360014BR.GOV.BCB.PIX0114+55119999999952040000530398654${total
-    .toFixed(2)
-    .replace(".", "")}5802BR5913${merchant}6009${city}62070503${orderCode}6304ABCD`;
 }
 
 export async function POST(request: NextRequest) {
